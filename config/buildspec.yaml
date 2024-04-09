@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - REPOSITORY_URI_NGINX=212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrnginx
+      - REPOSITORY_URI_WORDPRESS=212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrwordpress
+  build:
+    commands:
+      - echo Building the Nginx Docker image...
+      - docker build -f Dockerfile.nginx -t nginx-custom .
+      - echo Building the WordPress Docker image...
+      - docker build -f Dockerfile.wordpress -t wordpress-custom .
+  post_build:
+    commands:
+      - echo Tagging and pushing the Nginx Docker image...
+      - docker tag nginx-custom:latest $REPOSITORY_URI_NGINX:latest
+      - docker push $REPOSITORY_URI_NGINX:latest
+      - echo Tagging and pushing the WordPress Docker image...
+      - docker tag wordpress-custom:latest $REPOSITORY_URI_WORDPRESS:latest
+      - docker push $REPOSITORY_URI_WORDPRESS:latest
+      - echo Build and push completed on `09/04/24`
