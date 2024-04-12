@@ -236,20 +236,20 @@ Resources:
           REPOSITORY_URI_WORDPRESS="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrwordpress"
           REPOSITORY_URI_APACHE="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrapache"
 
-          aws ecr get-login-password --region eu-south-1 | docker login --username AWS --password-stdin 212914134641.dkr.ecr.eu-south-1.amazonaws.com
+          sudo aws ecr get-login-password --region eu-south-1 | docker login --username AWS --password-stdin 212914134641.dkr.ecr.eu-south-1.amazonaws.com
 
 
           # Scarica l'immagine WordPress da ECR
-          docker pull $REPOSITORY_URI_WORDPRESS
+          sudo docker pull $REPOSITORY_URI_WORDPRESS
 
           # Avvia l'immagine WordPress scaricata
-          docker run -d --restart always $REPOSITORY_URI_WORDPRESS
+          sudo docker run -d --restart always $REPOSITORY_URI_WORDPRESS
 
           # Scarica l'immagine Apache da ECR
-          docker pull $REPOSITORY_URI_APACHE
+          sudo docker pull $REPOSITORY_URI_APACHE
 
           # Avvia l'immagine Apache scaricata
-          docker run -d --restart always $REPOSITORY_URI_APACHE
+          sudo docker run -d --restart always $REPOSITORY_URI_APACHE
 
 
   InstanceProfile:
