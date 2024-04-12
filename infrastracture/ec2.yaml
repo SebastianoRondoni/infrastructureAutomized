@@ -242,6 +242,28 @@ Resources:
           service codedeploy-agent start
           service codedeploy-agent status
 
+          # Imposta le variabili d'ambiente per le immagini ECR
+          export REPOSITORY_URI_WORDPRESS="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrwordpress"
+          export REPOSITORY_URI_APACHE="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrapache"
+
+          # Effettua il login nel registro ECR
+          $(aws ecr get-login --no-include-email --region $AWS_REGION)
+
+          # Scarica l'immagine WordPress da ECR
+          docker pull $REPOSITORY_URI_WORDPRESS
+
+          # Avvia l'immagine WordPress scaricata
+          docker run -d --restart always $REPOSITORY_URI_WORDPRESS
+
+          # Scarica l'immagine Apache da ECR
+          docker pull $REPOSITORY_URI_APACHE
+
+          # Avvia l'immagine Apache scaricata
+          docker run -d --restart always $REPOSITORY_URI_APACHE
+
+          # Opzionale: aggiungi ulteriori comandi per configurare il servizio web o altre attività necessarie
+
+
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
