@@ -1,0 +1,387 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Security Groups
+
+Parameters:
+  VPC:
+    Type: String
+  AccountName:
+    Type: String
+  Project:
+    Type: String
+  Environment:
+    Type: String
+  PrivateSubnetA:
+    Type: String
+  PrivateSubnetB:
+    Type: String
+  PublicSubnetA:
+    Type: String
+  PublicSubnetB:
+    Type: String
+  
+
+
+Resources:
+
+  # myEC2Instance:
+  #   Type: AWS::EC2::Instance
+  #   Properties:
+  #     ImageId: ami-0d2a02d1ae1dd2cec 
+  #     InstanceType: t2.micro
+  #     SubnetId: !Ref PrivateSubnetA
+  #     SecurityGroupIds:
+  #       - !Ref SgEC2
+  #     BlockDeviceMappings:
+  #       - DeviceName: /dev/sda1
+  #         Ebs:
+  #           VolumeType: gp3
+  #           VolumeSize: 20
+  #           DeleteOnTermination: true
+  #     UserData: !Base64 |
+  #       #!/bin/bash -x
+  #           yum update -y
+  #           # SSM
+  #           yum install -y https://s3.{AWS::Region}.amazonaws.com/amazon-ssm-eu-south-1/latest/linux_amd64/amazon-ssm-agent.rpm
+  #           systemctl enable amazon-ssm-agent
+  #           systemctl start amazon-ssm-agent
+  #           #Docker
+  #           yum install docker -y
+  #           sudo service docker start 
+  #           sudo service docker startup
+  #           sudo usermod -aG docker ssm-user
+  #           sudo reboot
+  #           sudo mkdir /var/www/dkr
+  #           #Install Code-Deploy Agent
+  #           yum update -y
+  #           yum -y install ruby
+
+  #           cd /tmp
+  #           wget https://aws-codedeploy-eu-central-1.s3.amazonaws.com/latest/install;chmod +x ./install
+  #           ./install auto
+
+  #           service codedeploy-agent start
+  #           service codedeploy-agent status
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Join ['-', [!Ref AccountName, !Ref Project, !Ref Environment, instance]]
+  #       - Key: Project
+  #         Value: !Ref Project
+  #       - Key: Environment
+  #         Value: !Ref Environment
+  #       - Key: StackName
+  #         Value: !Ref AWS::StackName
+  SgEC2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: sgForEc2
+      GroupDescription: security group per ec2
+      VpcId: !Ref VPC 
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref AlbSG
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: SecGroupEc2
+
+  AlbSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: sgForAlb
+      GroupDescription: security group per ec2
+      VpcId: !Ref VPC 
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: SecGroupEc2    
+
+          #VPC DEFINITION  
+  # Vpc:
+  #   Type: AWS::EC2::VPC
+  #   Properties:
+  #     CidrBlock: !Ref VpcCidr
+  #     EnableDnsSupport: true
+  #     EnableDnsHostnames: true
+  #     InstanceTenancy: default
+  #     Tags:
+  #     - Key: Name
+  #       Value: !Join ['-', [!Ref AccountName, !Ref Project, !Ref Environment, vpc]]
+  #     - Key: Project
+  #       Value: !Ref Project
+  #     - Key: Environment
+  #       Value: !Ref Environment
+  #     - Key: StackName
+  #       Value: !Ref AWS::StackName
+
+
+##### SUBNETS #####
+
+  # PrivateSubnetA:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref Vpc
+  #     CidrBlock: !Select [ 0, !Ref SubnetCidr]
+  #     AvailabilityZone: !Select [ 0, Fn::GetAZs: !Ref AWS::Region ]
+  #     MapPublicIpOnLaunch: true
+  #     Tags:
+  #     - Key: Name
+  #       Value: !Join ['-', [!Ref AccountName, !Ref Project, !Ref Environment, public, a]]
+  #     - Key: Project
+  #       Value: !Ref Project
+  #     - Key: Environment
+  #       Value: !Ref Environment
+  #     - Key: StackName
+  #       Value: !Ref AWS::StackName
+
+  # PrivateSubnetB:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref Vpc
+  #     CidrBlock: !Select [ 1, !Ref SubnetCidr]
+  #     AvailabilityZone: !Select [ 1, Fn::GetAZs: !Ref AWS::Region ]
+  #     MapPublicIpOnLaunch: true
+  #     Tags:
+  #     - Key: Name
+  #       Value: !Join ['-', [!Ref AccountName, !Ref Project, !Ref Environment, public, b]]
+  #     - Key: Project
+  #       Value: !Ref Project
+  #     - Key: Environment
+  #       Value: !Ref Environment
+  #     - Key: StackName
+  #       Value: !Ref AWS::StackName
+
+  # NatGateway:
+  #   DependsOn: InternetGatewayAttachment
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId: !GetAtt ElasticIp.AllocationId
+  #     SubnetId: !Ref PublicSubnetA
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Join ['-', [!Ref AccountName, !Ref Project, !Ref Environment, asg]]
+      LaunchConfigurationName: !Ref myLaunchConfig
+      MinSize: 2
+      MaxSize: 4
+      TargetGroupARNs:
+           - !Ref TargetGroup
+      DesiredCapacity: 2
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 300
+      Cooldown: 300
+      VPCZoneIdentifier: 
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref AccountName, !Ref Project, !Ref Environment, asg]]
+          PropagateAtLaunch: true
+        - Key: AccountName
+          Value: !Ref AccountName
+          PropagateAtLaunch: true
+        - Key: Project
+          Value: !Ref Project
+          PropagateAtLaunch: true
+        - Key: Environment
+          Value: !Ref Environment
+          PropagateAtLaunch: true
+        - Key: StackName
+          Value: !Ref AWS::StackName
+          PropagateAtLaunch: true
+
+  myLaunchConfig: 
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: true
+      ImageId: ami-0d2a02d1ae1dd2cec
+      KeyName: LinKey
+      SecurityGroups: 
+        - !Ref SgEC2
+      InstanceType: t3.micro
+      IamInstanceProfile: !Ref InstanceProfile
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeType: gp3
+            VolumeSize: 30
+            DeleteOnTermination: true
+      UserData: !Base64 |
+        #!/bin/bash -x
+          yum update -y
+          # SSM
+          yum install -y https://s3.{AWS::Region}.amazonaws.com/amazon-ssm-eu-south-1/latest/linux_amd64/amazon-ssm-agent.rpm
+          systemctl enable amazon-ssm-agent
+          systemctl start amazon-ssm-agent
+          #Docker
+
+          yum install docker -y
+          sudo service docker start 
+          sudo service docker startup
+          sudo usermod -aG docker ssm-user
+          sudo reboot
+          sudo mkdir /var/www/dkr
+          #Install Code-Deploy Agent
+          yum update -y
+          yum -y install ruby
+
+          cd /tmp
+          wget https://aws-codedeploy-eu-central-1.s3.amazonaws.com/latest/install;chmod +x ./install
+          ./install auto
+
+          service codedeploy-agent start
+          service codedeploy-agent status
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+      - !Ref Role
+
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+
+  Alb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Join ['-', [!Ref AccountName, !Ref Project, !Ref Environment, alb]]
+      Type: application
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !Ref AlbSG
+      Subnets:
+        - !Ref PublicSubnetA
+        - !Ref PublicSubnetB
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: false
+      Tags:
+        - Key: AccountName
+          Value: !Ref AccountName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: StackName
+          Value: !Ref AWS::StackName
+
+  ListenerHttp:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref Alb
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Join ['-', [!Ref AccountName, !Ref Project, !Ref Environment, alb, tg]]
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      TargetType: instance
+      # Targets: 
+      #   - Id: 
+      #       Fn::ImportValue: !Sub ${AccountName}-${Project}-${Environment}-InstanceId
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckEnabled: true
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 5
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      Tags:
+        - Key: AccountName
+          Value: !Ref AccountName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: StackName
+          Value: !Ref AWS::StackName
+Outputs:
+
+  AlbSG:
+      Value: AlbSG.GroupId
+      Export:
+        Name: !Sub ${AccountName}-${Project}-${Environment}-Ec2ALBSecurityGroup
+
+  SgEC2:
+      Value: !GetAtt SgEC2.GroupId
+      Export:
+        Name: !Sub ${AccountName}-${Project}-${Environment}-Ec2InstanceSecurityGroup
+
+  # InstanceId:
+  #   Value: !Ref myEC2Instance
+  #   Export:
+  #     Name: !Sub ${AccountName}-${Project}-${Environment}-InstanceId
+
+  MyAutoScalingGroupId:
+    Value: !Ref AutoScalingGroup
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-ASGId
+  AlbName: 
+    Value: !GetAtt Alb.LoadBalancerName
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-AlbName
+  AlbFullName: 
+    Value: !GetAtt Alb.LoadBalancerFullName
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-AlbFullName
+  AlbArn: 
+    Value: !Ref Alb
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-AlbArn 
+  AlbListenerHttpsArn: 
+    Value: !Ref ListenerHttp
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-AlbListenerHttpsArn 
+  AlbDnsName:
+    Value: !GetAtt Alb.DNSName
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-AlblDnsName     
+  AlbHostedZoneID:
+    Value: !GetAtt Alb.CanonicalHostedZoneID
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-AlbHostedZoneID
+  TargetGroupName:
+    Value: !GetAtt TargetGroup.TargetGroupName
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-TargetGroupName 
+  TargetGroupFullName:
+    Value: !GetAtt TargetGroup.TargetGroupFullName
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-TargetGroupFullName 
+  TargetGroupArn:
+    Value: !Ref TargetGroup
+    Export:
+      Name: !Sub ${AccountName}-${Project}-${Environment}-TargetGroupArn
+
+

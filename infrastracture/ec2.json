@@ -1,0 +1,34 @@
+[
+    {
+        "ParameterKey": "AccountName",
+        "ParameterValue": "seba"
+    },
+    {
+        "ParameterKey": "Project",
+        "ParameterValue": "auto"
+    },
+    {
+        "ParameterKey": "Environment",
+        "ParameterValue": "test"
+    },
+    {
+        "ParameterKey": "PrivateSubnetA",
+        "ParameterValue": "subnet-06de5acab166e6575"
+    },
+    {
+        "ParameterKey": "PrivateSubnetB",
+        "ParameterValue": "subnet-0f4349cace8b6920c"
+    },
+    {
+        "ParameterKey": "PublicSubnetA",
+        "ParameterValue": "subnet-06de5acab166e6575"
+    },    
+    {
+        "ParameterKey": "PublicSubnetB",
+        "ParameterValue": "subnet-0f4349cace8b6920c"
+    },
+    {
+        "ParameterKey": "VPC",
+        "ParameterValue": "vpc-0b0d0327d5b58e3a2"
+    }
+]

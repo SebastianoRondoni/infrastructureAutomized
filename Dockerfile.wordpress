@@ -1,3 +1,11 @@
-FROM wordpress:6.5
+# Usa l'immagine di base di WordPress
+FROM wordpress:latest
 
+# Copia il file di configurazione di WordPress
+COPY config/wordpress.conf /etc/httpd/conf.d/wordpress.conf
+
+# Espone la porta 80 per HTTP
 EXPOSE 80
+
+# Avvia WordPress in modalità daemon
+CMD ["apache2-foreground"]

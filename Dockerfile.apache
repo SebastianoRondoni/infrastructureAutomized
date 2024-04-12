@@ -1,0 +1,13 @@
+FROM amazonlinux:latest
+
+# Aggiorna il sistema e installa Apache
+RUN yum -y update && yum -y install httpd
+
+# Copia un file index.html nella directory di default di Apache
+COPY static-files/index.html /var/www/html/
+
+# Espone la porta 80 per HTTP
+EXPOSE 80/tcp
+
+# Avvia Apache in modalità daemon
+CMD ["httpd", "-D", "FOREGROUND"]
