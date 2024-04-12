@@ -231,23 +231,13 @@ Resources:
           sudo usermod -aG docker ssm-user
           sudo reboot
           sudo mkdir /var/www/dkr
-          #Install Code-Deploy Agent
-          yum update -y
-          yum -y install ruby
-
-          cd /tmp
-          wget https://aws-codedeploy-eu-central-1.s3.amazonaws.com/latest/install;chmod +x ./install
-          ./install auto
-
-          service codedeploy-agent start
-          service codedeploy-agent status
 
           # Imposta le variabili d'ambiente per le immagini ECR
-          export REPOSITORY_URI_WORDPRESS="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrwordpress"
-          export REPOSITORY_URI_APACHE="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrapache"
+          REPOSITORY_URI_WORDPRESS="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrwordpress"
+          REPOSITORY_URI_APACHE="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrapache"
 
-          # Effettua il login nel registro ECR
-          $(aws ecr get-login --no-include-email --region $AWS_REGION)
+          aws ecr get-login-password --region eu-south-1 | docker login --username AWS --password-stdin 212914134641.dkr.ecr.eu-south-1.amazonaws.com
+
 
           # Scarica l'immagine WordPress da ECR
           docker pull $REPOSITORY_URI_WORDPRESS
@@ -260,8 +250,6 @@ Resources:
 
           # Avvia l'immagine Apache scaricata
           docker run -d --restart always $REPOSITORY_URI_APACHE
-
-          # Opzionale: aggiungi ulteriori comandi per configurare il servizio web o altre attività necessarie
 
 
   InstanceProfile:
@@ -285,6 +273,26 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+      Policies:
+           - PolicyName: ECRAccessPolicy
+             PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - ecr:GetAuthorizationToken
+                    - ecr:BatchCheckLayerAvailability
+                    - ecr:GetDownloadUrlForLayer
+                    - ecr:GetRepositoryPolicy
+                    - ecr:DescribeRepositories
+                    - ecr:ListImages
+                    - ecr:DescribeImages
+                    - ecr:BatchGetImage
+                    - ecr:InitiateLayerUpload
+                    - ecr:UploadLayerPart
+                    - ecr:CompleteLayerUpload
+                    - ecr:PutImage
+                  Resource: "*"
 
   Alb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer

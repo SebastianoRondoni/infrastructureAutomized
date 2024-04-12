@@ -3,9 +3,9 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 212914134641.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - REPOSITORY_URI_WORDPRESS=212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrwordpress
-      - REPOSITORY_URI_APACHE=212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrapache
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - REPOSITORY_URI_WORDPRESS=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrwordpress
+      - REPOSITORY_URI_APACHE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrapache
   build:
     commands:
       - echo Building apache Docker image...
