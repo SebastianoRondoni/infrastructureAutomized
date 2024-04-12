@@ -22,7 +22,7 @@ Configurare le impostazioni di CodeBuild per eseguire il build utilizzando il fi
 
 Osservazioni:
 
-Avendo utilizzato un account di test personale, sarà neccessario all'interno del file di parametri denominato "ec2.json" cambiare le subnet,
+Avendo utilizzato un account di test personale, sarà neccessario all'interno del file di parametri denominato "ec2.json" cambiare gli id delle risorse necessarie,
 in maniera tale da poter effettivamente testare l'infrastruttura con dei parametri corretti. 
 
 
