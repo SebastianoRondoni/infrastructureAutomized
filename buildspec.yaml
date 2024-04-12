@@ -15,9 +15,9 @@ phases:
       - docker build -f Dockerfile.wordpress -t wordpress-image . 
   post_build:
     commands:
-      - docker tag wordpress:latest $REPOSITORY_URI_WORDPRESS:latest
+      - docker tag wordpres-image:latest $REPOSITORY_URI_WORDPRESS:latest
       - docker push $REPOSITORY_URI_WORDPRESS:latest
-      - docker tag Apache:latest $REPOSITORY_URI_APACHE:latest
+      - docker tag Apache-image:latest $REPOSITORY_URI_APACHE:latest
       - docker push $REPOSITORY_URI_APACHE:latest
       - echo Build and push completed on `date`
       - aws cloudformation wait stack-create-complete --stack-name Auto-Infrastracture
