@@ -20,4 +20,10 @@ Selezionare CodeBuild come provider del servizio.
 Configurare le impostazioni di CodeBuild per eseguire il build utilizzando il file buildspec.yaml presente nella repository di Source.
 
 
+Osservazioni:
+
+Avendo utilizzato un account di test personale, sarà neccessario all'interno del file di parametri denominato "ec2.json" cambiare le subnet,
+in maniera tale da poter effettivamente testare l'infrastruttura con dei parametri corretti. 
+
+
 ![DIAGRAM](ReadmeDiagram/InfrastractureAutomized.jpg)
