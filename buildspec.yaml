@@ -4,21 +4,20 @@ phases:
   pre_build:
     commands:
       - AWS_ACCOUNT_ID=212914134641
+      - REPO_NAME="ecrwordpress"
+      - repo_exists=$(aws ecr describe-repositories --repository-names $REPO_NAME --output text --query 'repositories[*].repositoryName')
+      - if [ -z "$repo_exists" ]; then aws ecr create-repository --repository-name $REPO_NAME; fi
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - REPOSITORY_URI_WORDPRESS=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrwordpress
-      - REPOSITORY_URI_APACHE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrapache
   build:
     commands:
       - echo Building apache Docker image...
-      - docker build -f Dockerfile.apache -t apache-image .
-      - echo Building wordpress Docker image...
-      - docker build -f Dockerfile.wordpress -t wordpress-image . 
+      - docker build -f dockerfile -t wordpress-with-apache .
+      - docker run -d -p 80:80 wordpress-with-apache
   post_build:
     commands:
-      - docker tag wordpress-image:latest $REPOSITORY_URI_WORDPRESS:latest
+      - docker tag wordpress-with-apache:latest $REPOSITORY_URI_WORDPRESS:latest
       - docker push $REPOSITORY_URI_WORDPRESS:latest
-      - docker tag apache-image:latest $REPOSITORY_URI_APACHE:latest
-      - docker push $REPOSITORY_URI_APACHE:latest
       - echo Build and push completed on `date`
       - aws cloudformation create-stack --stack-name Auto-Infrastracture --template-body file://infrastracture/ec2.yaml --parameters file://infrastracture/ec2.json --capabilities "CAPABILITY_AUTO_EXPAND" "CAPABILITY_NAMED_IAM" "CAPABILITY_IAM"
       - aws cloudformation wait stack-create-complete --stack-name Auto-Infrastracture

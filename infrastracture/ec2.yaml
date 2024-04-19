@@ -226,30 +226,23 @@ Resources:
           #Docker
 
           yum install docker -y
-          sudo service docker start 
-          sudo service docker startup
-          sudo usermod -aG docker ssm-user
-          sudo reboot
-          sudo mkdir /var/www/dkr
+          systemctl enable docker
+          systemctl start docker
+          usermod -aG docker ssm-user      
+          reboot
+          mkdir /var/www/dkr
 
           # Imposta le variabili d'ambiente per le immagini ECR
           REPOSITORY_URI_WORDPRESS="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrwordpress"
-          REPOSITORY_URI_APACHE="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrapache"
 
-          sudo aws ecr get-login-password --region eu-south-1 | docker login --username AWS --password-stdin 212914134641.dkr.ecr.eu-south-1.amazonaws.com
+          aws ecr get-login-password --region eu-south-1 | docker login --username AWS --password-stdin 212914134641.dkr.ecr.eu-south-1.amazonaws.com
 
 
           # Scarica l'immagine WordPress da ECR
-          sudo docker pull $REPOSITORY_URI_WORDPRESS
+          docker pull $REPOSITORY_URI_WORDPRESS
 
           # Avvia l'immagine WordPress scaricata
-          sudo docker run -d --restart always $REPOSITORY_URI_WORDPRESS
-
-          # Scarica l'immagine Apache da ECR
-          sudo docker pull $REPOSITORY_URI_APACHE
-
-          # Avvia l'immagine Apache scaricata
-          sudo docker run -d --restart always $REPOSITORY_URI_APACHE
+           docker run -d --restart always $REPOSITORY_URI_WORDPRESS
 
 
   InstanceProfile:

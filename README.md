@@ -4,7 +4,7 @@ Una VPC con due subnet pubbliche e due subnet private.
 Routing table configurate correttamente per le subnet.
 Un Internet Gateway per le subnet pubbliche.
 Un NAT Gateway per le subnet private.
-Repository ECR private con i nomi ecrapache e ecrwordpress.
+Una Repository ECR privata denominata ecrwordpress.
 Passaggi Successivi:
 
 Creare la Pipeline:
