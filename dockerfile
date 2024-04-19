@@ -13,6 +13,8 @@ RUN a2ensite wordpress
 # Copia il file di configurazione di PHP personalizzato
 COPY config/php.ini /usr/local/etc/php/conf.d/custom.ini
 
+COPY static-files/index.html /var/www/html/index.html
+
 # Esponi la porta 80 per il traffico HTTP
 EXPOSE 80
 

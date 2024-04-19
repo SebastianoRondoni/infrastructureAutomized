@@ -235,14 +235,13 @@ Resources:
           # Imposta le variabili d'ambiente per le immagini ECR
           REPOSITORY_URI_WORDPRESS="212914134641.dkr.ecr.eu-south-1.amazonaws.com/ecrwordpress"
 
-          aws ecr get-login-password --region eu-south-1 | docker login --username AWS --password-stdin 212914134641.dkr.ecr.eu-south-1.amazonaws.com
-
+          docker login -u AWS -p $(aws ecr get-login-password --region eu-south-1) 212914134641.dkr.ecr.eu-south-1.amazonaws.com
 
           # Scarica l'immagine WordPress da ECR
           docker pull $REPOSITORY_URI_WORDPRESS
 
           # Avvia l'immagine WordPress scaricata
-           docker run -d --restart always $REPOSITORY_URI_WORDPRESS
+          docker run -d -p 80:80 start $REPOSITORY_URI_WORDPRESS
 
 
   InstanceProfile:
