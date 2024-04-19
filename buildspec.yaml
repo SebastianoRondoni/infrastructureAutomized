@@ -13,7 +13,7 @@ phases:
     commands:
       - echo Building apache Docker image...
       - docker build -f dockerfile -t wordpress-with-apache .
-      - docker run -d -p 80:80 wordpress-with-apache
+      #- docker run -d -p 80:80 wordpress-with-apache
   post_build:
     commands:
       - docker tag wordpress-with-apache:latest $REPOSITORY_URI_WORDPRESS:latest
